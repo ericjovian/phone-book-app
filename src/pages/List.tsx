@@ -1,18 +1,20 @@
 import React from "react";
-import Contact from "./Contact";
+import Contact from "../components/Contact";
 import SearchBar from "../components/SearchBar";
 import useContacts from "../hooks/useContacts";
 
 const List: React.FC = () => {
   const { loading, error, data } = useContacts();
 
+  const handleDetailClick = (id: number) => {
+    console.log(id);
+  };
+
   return (
     <div
       css={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         width: "100%",
+        paddingBottom: "4rem",
       }}
     >
       <SearchBar />
@@ -31,9 +33,11 @@ const List: React.FC = () => {
           data.contact.map((contact: any) => (
             <Contact
               key={contact.id}
+              id={contact.id}
               firstName={contact.first_name}
               lastName={contact.last_name}
               phoneNumber={contact.phones[0]?.number || ""}
+              onDetailClick={handleDetailClick}
             />
           ))}
       </div>

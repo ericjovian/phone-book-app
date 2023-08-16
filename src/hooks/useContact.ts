@@ -14,8 +14,12 @@ const GET_CONTACT = gql`
   }
 `;
 
-const useContact = () => {
-  const { data, loading, error } = useQuery(GET_CONTACT);
+const useContact = (id: number) => {
+  const { data, loading, error } = useQuery(GET_CONTACT, {
+    variables: {
+      id,
+    },
+  });
   return { data, loading, error };
 };
 

@@ -9,7 +9,7 @@ const routes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navbar />}>
-          <Route path="/form" element={<Form />} />
+          <Route path="/:id" element={<Form />} />
           <Route index element={<List />} />
         </Route>
         <Route path="*" element={<NotFound />} />

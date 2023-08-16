@@ -3,7 +3,14 @@ import { css } from "@emotion/react";
 
 const SearchBar: React.FC = () => {
   return (
-    <div>
+    <div
+      css={css`
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      `}
+    >
       <input
         type="text"
         placeholder="Search"
@@ -13,7 +20,7 @@ const SearchBar: React.FC = () => {
           border-radius: 5px;
           border: 1px solid #ccc;
           padding: 0 10px;
-          margin: 10px;
+          margin: 10px 0;
           font-size: 16px;
         `}
       />

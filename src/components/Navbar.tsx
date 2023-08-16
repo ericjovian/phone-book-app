@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
           List
         </NavLink>
         <NavLink to="/form" css={NavlinkStyle}>
-          Form
+          Add
         </NavLink>
       </div>
     </>

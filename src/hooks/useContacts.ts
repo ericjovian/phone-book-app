@@ -32,7 +32,7 @@ const useContacts = () => {
       limit: 10,
       offset: 0,
       order_by: {
-        created_at: "desc",
+        first_name: "desc",
       },
     },
   });
