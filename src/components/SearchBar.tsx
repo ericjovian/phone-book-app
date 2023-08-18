@@ -1,7 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { css } from "@emotion/react";
+import { useDebounce } from "../hooks/useDebounce";
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  onSearch: (searchTerm: string) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
+  };
+
+  // Call the onSearch function with the debounced search term
+  React.useEffect(() => {
+    onSearch(debouncedSearchTerm);
+  }, [debouncedSearchTerm, onSearch]);
+
   return (
     <div
       css={css`
@@ -14,6 +32,8 @@ const SearchBar: React.FC = () => {
       <input
         type="text"
         placeholder="Search"
+        value={searchTerm}
+        onChange={handleSearchChange}
         css={css`
           height: 40px;
           width: 90vw;

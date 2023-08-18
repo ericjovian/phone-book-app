@@ -8,7 +8,6 @@ interface ContactProps {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  onDetailClick: (id: number) => void;
 }
 
 const Contact: React.FC<ContactProps> = ({
@@ -16,7 +15,6 @@ const Contact: React.FC<ContactProps> = ({
   firstName,
   lastName,
   phoneNumber,
-  onDetailClick,
 }) => {
   const ContactCardStyling = css`
     border: 1px solid black;

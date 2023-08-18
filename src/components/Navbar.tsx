@@ -18,7 +18,13 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <Outlet />
+      <div
+        css={css`
+          padding-bottom: 4rem;
+        `}
+      >
+        <Outlet />
+      </div>
       <div
         css={css`
           display: flex;
@@ -35,7 +41,7 @@ const Navbar: React.FC = () => {
         <NavLink to="/" css={NavlinkStyle}>
           List
         </NavLink>
-        <NavLink to="/form" css={NavlinkStyle}>
+        <NavLink to="/0" css={NavlinkStyle}>
           Add
         </NavLink>
       </div>
