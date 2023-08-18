@@ -14,13 +14,17 @@ const PUT_CONTACT = gql`
 `;
 
 const POST_NUMBER = gql`
-  mutation EditContactById($id: Int!, $_set: contact_set_input) {
-    update_contact_by_pk(pk_columns: { id: $id }, _set: $_set) {
-      id
-      first_name
-      last_name
-      phones {
-        number
+  mutation AddNumberToContact($contact_id: Int!, $phone_number: String!) {
+    insert_phone(objects: { contact_id: $contact_id, number: $phone_number }) {
+      returning {
+        contact {
+          id
+          last_name
+          first_name
+          phones {
+            number
+          }
+        }
       }
     }
   }
@@ -71,14 +75,32 @@ const useEditContact = () => {
 
   const add = async (id: number, number: string) => {
     try {
-      await addNumber({
+      const { data, errors } = await addNumber({
         variables: {
-          id,
-          _set: {
-            number,
-          },
+          contact_id: id,
+          phone_number: number,
         },
       });
+
+      if (errors) {
+        const errorMessage = errors[0].message;
+        if (
+          errorMessage.includes(
+            "duplicate key value violates unique constraint"
+          )
+        ) {
+          console.log("Phone number already exists for another contact.");
+          return;
+        } else {
+          console.log("Error while adding phone number:", errorMessage);
+          return;
+        }
+      }
+
+      console.log(
+        "Phone number added successfully:",
+        data.insert_phone.returning
+      );
     } catch (error) {
       console.log(error);
     }

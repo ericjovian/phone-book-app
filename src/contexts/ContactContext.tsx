@@ -21,11 +21,12 @@ export interface ContactType {
 interface ContactContextType {
   contacts: ContactType[];
   favourites: ContactType[];
+  isFavorited: (contactId: number | undefined) => boolean;
   addContact: (newContact: ContactType) => void;
   editContact: (editedContact: ContactType) => void;
   deleteContact: (contactId: number) => void;
   addFavourite: (newFavourite: ContactType) => void;
-  removeFavourite: (contactId: number) => void;
+  removeFavourite: (contactId: number, newContact: ContactType) => void;
 }
 const ContactContext = createContext<ContactContextType | undefined>(undefined);
 
@@ -52,6 +53,13 @@ export const ContactProvider = ({ children }: ContactProviderProps) => {
     setContacts((prevContacts) => [...prevContacts, newContact]);
   };
 
+  const isFavorited = (contactId: number | undefined) => {
+    if (contactId === undefined) {
+      return false;
+    }
+    return favourites.some((fav) => fav.id === contactId);
+  };
+
   const addFavourite = (newFavourite: ContactType) => {
     setFavourites((prevFavourites) => [...prevFavourites, newFavourite]);
     setContacts((prevContacts) =>
@@ -59,7 +67,8 @@ export const ContactProvider = ({ children }: ContactProviderProps) => {
     );
   };
 
-  const removeFavourite = (contactId: number) => {
+  const removeFavourite = (contactId: number, newContact: ContactType) => {
+    setContacts((prevContacts) => [...prevContacts, newContact]);
     setFavourites((prevFavourites) =>
       prevFavourites.filter((contact) => contact.id !== contactId)
     );
@@ -87,6 +96,7 @@ export const ContactProvider = ({ children }: ContactProviderProps) => {
   const contextValue: ContactContextType = {
     contacts,
     favourites,
+    isFavorited,
     addContact,
     editContact,
     deleteContact,

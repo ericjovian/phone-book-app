@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { css } from "@emotion/react";
 import useDeleteContact from "../hooks/useDeleteContact";
-import { useContactContext, ContactType } from "../contexts/ContactContext";
-import AddFavourite from "./AddFavourite";
+import useContacts from "../hooks/useContacts";
+import { ContactType, useContactContext } from "../contexts/ContactContext";
 import BackButton from "./BackButton";
 import useFormSubmission from "../hooks/useFormSubmission";
+import useEditContact from "../hooks/useEditContact";
 
 export interface Phone {
   number: string;
+  originalNumber?: string;
   __typename?: string;
 }
 
@@ -29,11 +31,24 @@ const ContactForm: React.FC<ContactFormProps> = ({
   initialData,
 }) => {
   const delContact = useDeleteContact();
+  const { data: contactData } = useContacts("");
   const handleFormSubmission = useFormSubmission();
-  const { deleteContact, addFavourite } = useContactContext();
+  const {
+    deleteContact,
+    addFavourite,
+    removeFavourite,
+    isFavorited,
+    editContact,
+  } = useContactContext();
   const navigate = useNavigate();
+  const { edit, add, editNum } = useEditContact();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const [formState, setFormState] = useState<FormProps>(initialData);
+  const [disabled, setDisabled] = useState(false);
+  const [formState, setFormState] = useState<FormProps>({
+    firstName: "",
+    lastName: "",
+    ...initialData,
+  });
 
   const labelStyling = css`
     display: flex;
@@ -51,17 +66,113 @@ const ContactForm: React.FC<ContactFormProps> = ({
     margin-bottom: 10px;
   `;
 
+  const favButtonStyling = {
+    border: "none",
+    backgroundColor: "transparent",
+    cursor: "pointer",
+    fontSize: "1rem",
+
+    "&:hover": {
+      scale: "1.1",
+    },
+  };
+
+  const deleteButtonStyling = {
+    border: "none",
+    backgroundColor: "transparent",
+    cursor: "pointer",
+    fontSize: "1rem",
+    color: "red",
+
+    "&:hover": {
+      scale: "1.1",
+    },
+  };
+
+  const isDuplicateName = (
+    firstName: string,
+    lastName: string,
+    contacts: ContactType[] | undefined,
+    editedContactId?: number
+  ) => {
+    return contacts?.some(
+      (contact) =>
+        (editedContactId && contact.id === editedContactId) || // Skip check if it's the edited contact
+        (contact.first_name === firstName && contact.last_name === lastName)
+    );
+  };
+
+  const isValidName = (name: string) => {
+    const regex = /^[A-Za-z\s]+$/;
+    return regex.test(name);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (name === "firstName" || name === "lastName") {
+      if (!isValidName(value)) {
+        setDisabled(true);
+        return;
+      }
+    }
+    setDisabled(false);
     setFormState((prevState) => ({
       ...prevState,
       [name]: value,
+      phones: prevState.phones!.map((phone, index) =>
+        index === focusedIndex
+          ? {
+              ...phone,
+              number: value,
+              originalNumber: phone.originalNumber || value,
+            }
+          : phone
+      ),
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    handleFormSubmission(isNewContact || false, formState);
+    const { id, firstName, lastName, phones } = formState;
+
+    if (isNewContact) {
+      handleFormSubmission(true, formState);
+    } else {
+      edit(id!, { first_name: firstName!, last_name: lastName! });
+      if (phones) {
+        phones.forEach(async (phone) => {
+          if (phone.number) {
+            if (phone.__typename === "Phone") {
+              console.log(
+                "Comparing numbers:",
+                phone.number,
+                phone.originalNumber
+              );
+              if (phone.originalNumber !== phone.number) {
+                console.log("Calling editNum for:", phone.number);
+                await editNum(id!, phone.originalNumber!, phone.number);
+              } else {
+                console.log("Not calling editNum for:", phone.number);
+              }
+            } else if (phone.number && phone.number !== "") {
+              const existingPhone = formState.phones!.find(
+                (p) => p.number === phone.number
+              );
+              if (!existingPhone || !existingPhone.originalNumber) {
+                add(id!, phone.number);
+              }
+            }
+          }
+        });
+      }
+      editContact({
+        id: id!,
+        first_name: firstName!,
+        last_name: lastName!,
+        phones: phones!,
+      });
+    }
+    navigate("/");
   };
 
   const handleDelete = () => {
@@ -77,6 +188,19 @@ const ContactForm: React.FC<ContactFormProps> = ({
       last_name: formState.lastName!,
       phones: formState.phones!,
     });
+    navigate("/");
+  };
+
+  const handleRemoveFromFavorites = () => {
+    if (formState.id) {
+      removeFavourite(formState.id, {
+        id: formState.id,
+        first_name: formState.firstName!,
+        last_name: formState.lastName!,
+        phones: formState.phones!,
+      });
+    }
+    navigate("/");
   };
 
   useEffect(() => {
@@ -88,7 +212,27 @@ const ContactForm: React.FC<ContactFormProps> = ({
       <h1>{isNewContact ? "Create New Contact" : "Edit Contact"}</h1>
       <div css={{ display: "flex", justifyContent: "space-between" }}>
         <BackButton />
-        {isNewContact ? null : <AddFavourite onClick={handleFavorite} />}
+        {isNewContact ? null : (
+          <>
+            {isFavorited(formState.id) ? (
+              <button
+                type="button"
+                onClick={handleRemoveFromFavorites}
+                css={favButtonStyling}
+              >
+                &#9733; Remove from Favorites
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFavorite}
+                css={favButtonStyling}
+              >
+                &#9733; Add to Favorites
+              </button>
+            )}
+          </>
+        )}
       </div>
       <form onSubmit={handleSubmit}>
         <label css={labelStyling}>
@@ -116,20 +260,21 @@ const ContactForm: React.FC<ContactFormProps> = ({
             Phone {index + 1}:
             <input
               type="text"
-              name="phones"
+              name={`phones_${index}`}
               css={inputStyling}
               value={phone.number}
               onChange={(e) => {
-                const newPhones = [...formState.phones!];
-                newPhones[index].number = e.target.value;
+                const newPhones = formState.phones!.map((p, i) =>
+                  i === index ? { ...p, number: e.target.value } : p
+                );
                 setFormState((prevState) => ({
                   ...prevState,
                   phones: newPhones,
                 }));
               }}
-              onFocus={() => setFocusedIndex(index)} // Set the focused index
-              onBlur={() => setFocusedIndex(null)} // Clear focused index on blur
-              autoFocus={index === focusedIndex} // Automatically focus the current input
+              onFocus={() => setFocusedIndex(index)}
+              onBlur={() => setFocusedIndex(null)}
+              autoFocus={index === focusedIndex}
             />
           </label>
         ))}
@@ -155,9 +300,15 @@ const ContactForm: React.FC<ContactFormProps> = ({
             autoFocus={formState.phones!.length === focusedIndex}
           />
         </label>
-        <button type="submit">Save</button>
+        <button type="submit" css={favButtonStyling} disabled={disabled}>
+          Save
+        </button>
         {!isNewContact && (
-          <button type="button" onClick={handleDelete}>
+          <button
+            type="button"
+            onClick={handleDelete}
+            css={deleteButtonStyling}
+          >
             Delete
           </button>
         )}
