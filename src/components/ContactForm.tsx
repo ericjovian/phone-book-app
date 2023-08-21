@@ -5,7 +5,6 @@ import useDeleteContact from "../hooks/useDeleteContact";
 import useContacts from "../hooks/useContacts";
 import { ContactType, useContactContext } from "../contexts/ContactContext";
 import BackButton from "./BackButton";
-import useFormSubmission from "../hooks/useFormSubmission";
 import useEditContact from "../hooks/useEditContact";
 
 export interface Phone {
@@ -32,7 +31,6 @@ const ContactForm: React.FC<ContactFormProps> = ({
 }) => {
   const delContact = useDeleteContact();
   const { data: contactData } = useContacts("");
-  const handleFormSubmission = useFormSubmission();
   const {
     deleteContact,
     addFavourite,
@@ -97,7 +95,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   ) => {
     return contacts?.some(
       (contact) =>
-        (editedContactId && contact.id === editedContactId) || // Skip check if it's the edited contact
+        (editedContactId && contact.id === editedContactId) ||
         (contact.first_name === firstName && contact.last_name === lastName)
     );
   };
@@ -133,45 +131,65 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const { id, firstName, lastName, phones } = formState;
 
-    if (isNewContact) {
-      handleFormSubmission(true, formState);
-    } else {
-      edit(id!, { first_name: firstName!, last_name: lastName! });
-      if (phones) {
-        phones.forEach(async (phone) => {
-          if (phone.number) {
-            if (phone.__typename === "Phone") {
-              console.log(
-                "Comparing numbers:",
-                phone.number,
-                phone.originalNumber
-              );
-              if (phone.originalNumber !== phone.number) {
-                console.log("Calling editNum for:", phone.number);
-                await editNum(id!, phone.originalNumber!, phone.number);
-              } else {
-                console.log("Not calling editNum for:", phone.number);
-              }
-            } else if (phone.number && phone.number !== "") {
-              const existingPhone = formState.phones!.find(
-                (p) => p.number === phone.number
-              );
-              if (!existingPhone || !existingPhone.originalNumber) {
-                add(id!, phone.number);
-              }
+    if (
+      firstName !== initialData.firstName ||
+      lastName !== initialData.lastName
+    ) {
+      if (
+        contactData?.contact &&
+        isDuplicateName(
+          firstName!,
+          lastName!,
+          contactData.contact,
+          formState.id
+        )
+      ) {
+        alert("Contact already exists!");
+        return;
+      }
+    }
+
+    edit(id!, { first_name: firstName!, last_name: lastName! });
+
+    if (phones) {
+      phones.forEach(async (phone) => {
+        if (phone.number) {
+          if (phone.__typename === "Phone") {
+            console.log(
+              "Comparing numbers:",
+              phone.number,
+              phone.originalNumber
+            );
+            if (phone.originalNumber !== phone.number) {
+              console.log("Calling editNum for:", phone.number);
+              await editNum(id!, phone.originalNumber!, phone.number);
+            } else {
+              console.log("Not calling editNum for:", phone.number);
+            }
+          } else if (phone.number && phone.number !== "") {
+            const existingPhone = formState.phones!.find(
+              (p) => p.number === phone.number
+            );
+            if (!existingPhone || !existingPhone.originalNumber) {
+              add(id!, phone.number);
             }
           }
-        });
-      }
-      editContact({
-        id: id!,
-        first_name: firstName!,
-        last_name: lastName!,
-        phones: phones!,
+        }
       });
     }
+
+    // Update the contact details using the editContact function
+    editContact({
+      id: id!,
+      first_name: firstName!,
+      last_name: lastName!,
+      phones: phones!,
+    });
+
+    // Navigate back to the main page after submission
     navigate("/");
   };
 
