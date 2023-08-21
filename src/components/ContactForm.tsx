@@ -6,6 +6,7 @@ import useContacts from "../hooks/useContacts";
 import { ContactType, useContactContext } from "../contexts/ContactContext";
 import BackButton from "./BackButton";
 import useEditContact from "../hooks/useEditContact";
+import useAddContact from "../hooks/useAddContact";
 
 export interface Phone {
   number: string;
@@ -30,6 +31,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   initialData,
 }) => {
   const delContact = useDeleteContact();
+  const addContact = useAddContact();
   const { data: contactData } = useContacts("");
   const {
     deleteContact,
@@ -37,9 +39,10 @@ const ContactForm: React.FC<ContactFormProps> = ({
     removeFavourite,
     isFavorited,
     editContact,
+    addContact: addContactToContext,
   } = useContactContext();
   const navigate = useNavigate();
-  const { edit, add, editNum } = useEditContact();
+  const { edit, addNum, editNum } = useEditContact();
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const [disabled, setDisabled] = useState(false);
   const [formState, setFormState] = useState<FormProps>({
@@ -87,6 +90,14 @@ const ContactForm: React.FC<ContactFormProps> = ({
     },
   };
 
+  const buttonsStyling = css`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 300px;
+    margin: 0 auto;
+  `;
+
   const isDuplicateName = (
     firstName: string,
     lastName: string,
@@ -131,6 +142,28 @@ const ContactForm: React.FC<ContactFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isNewContact) {
+      if (
+        contactData?.contacts &&
+        isDuplicateName(
+          formState.firstName!,
+          formState.lastName!,
+          contactData.contacts
+        )
+      ) {
+        alert("Contact already exists!");
+        return;
+      } else {
+        const data = await addContact({
+          first_name: formState.firstName!,
+          last_name: formState.lastName!,
+          phones: formState.phones!,
+        });
+        addContactToContext(data);
+        navigate("/");
+        return;
+      }
+    }
 
     const { id, firstName, lastName, phones } = formState;
 
@@ -139,11 +172,11 @@ const ContactForm: React.FC<ContactFormProps> = ({
       lastName !== initialData.lastName
     ) {
       if (
-        contactData?.contact &&
+        contactData?.contacts &&
         isDuplicateName(
           firstName!,
           lastName!,
-          contactData.contact,
+          contactData.contacts,
           formState.id
         )
       ) {
@@ -153,6 +186,12 @@ const ContactForm: React.FC<ContactFormProps> = ({
     }
 
     edit(id!, { first_name: firstName!, last_name: lastName! });
+    editContact({
+      id: id!,
+      first_name: firstName!,
+      last_name: lastName!,
+      phones: phones!,
+    });
 
     if (phones) {
       phones.forEach(async (phone) => {
@@ -174,22 +213,19 @@ const ContactForm: React.FC<ContactFormProps> = ({
               (p) => p.number === phone.number
             );
             if (!existingPhone || !existingPhone.originalNumber) {
-              add(id!, phone.number);
+              addNum(id!, phone.number);
             }
           }
         }
       });
     }
 
-    // Update the contact details using the editContact function
     editContact({
       id: id!,
       first_name: firstName!,
       last_name: lastName!,
       phones: phones!,
     });
-
-    // Navigate back to the main page after submission
     navigate("/");
   };
 
@@ -229,28 +265,30 @@ const ContactForm: React.FC<ContactFormProps> = ({
     <div>
       <h1>{isNewContact ? "Create New Contact" : "Edit Contact"}</h1>
       <div css={{ display: "flex", justifyContent: "space-between" }}>
-        <BackButton />
-        {isNewContact ? null : (
-          <>
-            {isFavorited(formState.id) ? (
-              <button
-                type="button"
-                onClick={handleRemoveFromFavorites}
-                css={favButtonStyling}
-              >
-                &#9733; Remove from Favorites
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleFavorite}
-                css={favButtonStyling}
-              >
-                &#9733; Add to Favorites
-              </button>
-            )}
-          </>
-        )}
+        <div css={buttonsStyling}>
+          <BackButton />
+          {isNewContact ? null : (
+            <>
+              {isFavorited(formState.id) ? (
+                <button
+                  type="button"
+                  onClick={handleRemoveFromFavorites}
+                  css={favButtonStyling}
+                >
+                  &#9733; Remove from Favorites
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleFavorite}
+                  css={favButtonStyling}
+                >
+                  &#9733; Add to Favorites
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
       <form onSubmit={handleSubmit}>
         <label css={labelStyling}>
@@ -318,18 +356,20 @@ const ContactForm: React.FC<ContactFormProps> = ({
             autoFocus={formState.phones!.length === focusedIndex}
           />
         </label>
-        <button type="submit" css={favButtonStyling} disabled={disabled}>
-          Save
-        </button>
-        {!isNewContact && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            css={deleteButtonStyling}
-          >
-            Delete
+        <div css={buttonsStyling}>
+          <button type="submit" css={favButtonStyling} disabled={disabled}>
+            Save
           </button>
-        )}
+          {!isNewContact && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              css={deleteButtonStyling}
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

@@ -73,7 +73,7 @@ const useEditContact = () => {
     }
   };
 
-  const add = async (id: number, number: string) => {
+  const addNum = async (id: number, number: string) => {
     try {
       const { data, errors } = await addNumber({
         variables: {
@@ -122,7 +122,7 @@ const useEditContact = () => {
     }
   };
 
-  return { edit, add, editNum };
+  return { edit, addNum, editNum };
 };
 
 export default useEditContact;
