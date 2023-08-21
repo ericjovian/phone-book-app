@@ -119,7 +119,7 @@ const ContactForm: React.FC<ContactFormProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "firstName" || name === "lastName") {
-      if (!isValidName(value)) {
+      if (value.trim() !== "" && !isValidName(value)) {
         setDisabled(true);
         return;
       }

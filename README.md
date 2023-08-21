@@ -1,27 +1,49 @@
-# React + TypeScript + Vite
+# React Phone Book App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Demo link:
 
-Currently, two official plugins are available:
+https://ericjovian-phone-book.netlify.app/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## About The App:
 
-## Expanding the ESLint configuration
+Phone Book Project Assignment for GoTo's recruitment.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Setup:
 
-- Configure the top-level `parserOptions` property like this:
+- download and clone the repository
 
-```js
-   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-   },
+```
+git clone https://github.com/ericjovian/phone-book-app.git
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+- installing required dependencies
+
+```
+npm install
+```
+
+```
+yarn
+```
+
+- run the app locally
+
+```
+npm run dev
+```
+
+```
+yarn dev
+```
+
+## Technologies:
+
+```
+React with Typescript using Vite,
+Apollo Client,
+Emotion - CSS in JS
+```
+
+## Status
+
+the project is still unfinished due to bugs and no unit testing yet, there is a bug while editing a Contact's phone number.
