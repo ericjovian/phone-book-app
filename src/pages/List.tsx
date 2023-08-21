@@ -103,7 +103,7 @@ const List: React.FC = () => {
         >
           Contacts
         </h1>
-        {displayedContacts.map((contact) => (
+        {displayedContacts?.map((contact) => (
           <Contact
             key={contact.id!}
             id={contact.id!}

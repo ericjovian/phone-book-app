@@ -1,26 +1,34 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import PhoneBook from "../assets/phonebook.svg";
+import AddNew from "../assets/addnew.svg";
+
 import { css } from "@emotion/react";
 
 const Navbar: React.FC = () => {
   const NavlinkStyle = css`
-    color: #fff;
-    text-decoration: none;
-    font-size: 1.2rem;
-    font-weight: bold;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    width: 50px;
     &:hover {
-      color: #ccc;
+      scale: 1.1;
     }
-    &.active {
-      color: #ccc;
+    &:active {
+      scale: 0.9;
     }
+  `;
+
+  const IconStyling = css`
+    width: 40px;
+    height: 40px;
   `;
 
   return (
     <>
       <div
         css={css`
-          padding-bottom: 4rem;
+          padding-bottom: 6rem;
         `}
       >
         <Outlet />
@@ -30,7 +38,7 @@ const Navbar: React.FC = () => {
           display: flex;
           justify-content: space-around;
           align-items: center;
-          background-color: #333;
+          background-color: #3d5af1;
           padding: 1rem;
           position: fixed;
           bottom: 0;
@@ -39,10 +47,10 @@ const Navbar: React.FC = () => {
         `}
       >
         <NavLink to="/" css={NavlinkStyle}>
-          List
+          <img src={PhoneBook} alt="List" css={IconStyling} />
         </NavLink>
         <NavLink to="/0" css={NavlinkStyle}>
-          Add
+          <img src={AddNew} alt="Add" css={IconStyling} />
         </NavLink>
       </div>
     </>

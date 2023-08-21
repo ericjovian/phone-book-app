@@ -44,7 +44,14 @@ const Contact: React.FC<ContactProps> = ({
       </div>
       <Link to={`/${id}`}>
         <button css={DetailButtonStyling}>
-          <img src={Detail} alt="detail" />
+          <img
+            src={Detail}
+            alt="detail"
+            css={css`
+              width: 25px;
+              height: 25px;
+            `}
+          />
         </button>
       </Link>
     </div>
